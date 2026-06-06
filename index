@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>기사심사부 휴가 캘린더</title>
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+
+<style>
+
+:root{
+    --primary:#0f172a;
+    --primary-hover:#1e293b;
+    --border:#e2e8f0;
+    --bg:#f8fafc;
+    --text:#334155;
+
+    --sun:#ef4444;
+    --sat:#2563eb;
+
+    --holiday:#ef4444;
+
+    --shadow:
+        0 4px 6px -1px rgba(0,0,0,.05),
+        0 2px 4px -1px rgba(0,0,0,.03);
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:
+        Pretendard,
+        -apple-system,
+        BlinkMacSystemFont,
+        system-ui,
+        sans-serif;
+}
+
+body{
+    background:var(--bg);
+    padding:40px 20px;
+    color:var(--text);
+}
+
+.container{
+    max-width:1200px;
+    margin:auto;
+    background:#fff;
+    border-radius:16px;
+    box-shadow:var(--shadow);
+    padding:30px;
+    position:relative;
+    padding-bottom:100px;
+}
+
+/* =====================
+   HEADER
+===================== */
+
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:25px;
+}
+
+.header-left{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.calendar-title-wrap{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.nav-btn{
+    border:none;
+    background:none;
+    cursor:pointer;
+    font-size:18px;
+    color:#64748b;
+}
+
+.nav-btn:hover{
+    color:var(--primary);
+}
+
+.title-text{
+    font-size:24px;
+    font-weight:700;
+    color:#1e293b;
+    cursor:pointer;
+}
+
+.dropdown-area{
+    display:none;
+    gap:8px;
+}
+
+.select-box{
+    padding:6px 10px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    font-size:15px;
+}
+
+.btn-add{
+    background:var(--primary);
+    color:#fff;
+    border:none;
+    padding:10px 18px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:600;
+}
+
+.btn-add:hover{
+    background:var(--primary-hover);
+}
+
+/* =====================
+   CALENDAR
+===================== */
+
+.calendar-grid{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+
+    border-top:1px solid var(--border);
+    border-left:1px solid var(--border);
+}
+
+.day-header{
+    text-align:center;
+    padding:12px;
+    background:#f8fafc;
+    border-right:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+    font-size:14px;
+    font-weight:600;
+}
+
+.day-header.sun{
+    color:var(--sun);
+}
+
+.day-header.sat{
+    color:var(--sat);
+}
+
+.day-cell{
+    min-height:120px;
+    padding:8px;
+    border-right:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+    background:#fff;
+}
+
+.day-cell.other{
+    opacity:.35;
+}
+
+.day-cell.sun .day-number{
+    color:var(--sun);
+}
+
+.day-cell.sat .day-number{
+    color:var(--sat);
+}
+
+.day-cell.holiday .day-number{
+    color:var(--holiday);
+}
+
+.day-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:6px;
+}
+
+.day-number{
+    font-size:14px;
+    font-weight:700;
+}
+
+.holiday-name{
+    font-size:10px;
+    color:#fff;
+    background:var(--holiday);
+    padding:2px 5px;
+    border-radius:4px;
+}
+
+.memo-badge{
+    font-size:11px;
+    color:#0369a1;
+    background:#e0f2fe;
+    border-radius:4px;
+    padding:2px 5px;
+    margin-top:3px;
+    display:inline-block;
+    max-width:100%;
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+}
+
+.leave-list{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+}
+
+.leave-item{
+    background:#f1f5f9;
+    padding:4px 6px;
+    border-radius:5px;
+    font-size:12px;
+    cursor:pointer;
+    border-left:3px solid #94a3b8;
+}
+
+.leave-item:hover{
+    background:#e2e8f0;
+}
+
+/* =====================
+   FOOTER BUTTONS
+===================== */
+
+.footer-buttons{
+    position:absolute;
+    bottom:25px;
+    left:38%;
+    transform:translateX(-50%);
+    display:flex;
+    gap:10px;
+}
+
+.footer-btn{
+    border:1px solid var(--border);
+    background:#fff;
+    border-radius:24px;
+    padding:10px 22px;
+    cursor:pointer;
+}
+
+.footer-btn.primary{
+    background:var(--primary);
+    color:#fff;
+    border:none;
+}
+
+/* =====================
+   MODAL
+===================== */
+
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.35);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    z-index:999;
+}
+
+.modal.show{
+    display:flex;
+}
+
+.modal-box{
+    width:420px;
+    background:#fff;
+    border-radius:16px;
+    padding:25px;
+}
+
+.modal-title{
+    font-size:18px;
+    font-weight:700;
+    margin-bottom:20px;
+}
+
+.form-group{
+    margin-bottom:15px;
+}
+
+.form-group label{
+    display:block;
+    margin-bottom:6px;
+    font-size:13px;
+    font-weight:600;
+}
+
+.form-control{
+    width:100%;
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:10px;
+}
+
+.date-row{
+    display:flex;
+    gap:10px;
+}
+
+.date-row .form-group{
+    flex:1;
+}
+
+.modal-footer{
+    margin-top:20px;
+    display:flex;
+    gap:10px;
+    justify-content:flex-end;
+}
+
+.btn{
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    padding:10px 16px;
+}
+
+.btn-cancel{
+    background:#f1f5f9;
+}
+
+.btn-save{
+    background:var(--primary);
+    color:#fff;
+}
+
+.btn-delete{
+    margin-right:auto;
+    background:#fee2e2;
+    color:#dc2626;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+
+        <div class="header-left">
+
+            <div class="calendar-title-wrap">
+
+                <button
+                    class="nav-btn"
+                    onclick="moveMonth(-1)">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+
+                <span
+                    id="calendarTitle"
+                    class="title-text"
+                    onclick="toggleMonthSelector()">
+                    2026년 6월
+                </span>
+
+                <button
+                    class="nav-btn"
+                    onclick="moveMonth(1)">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+
+            </div>
+
+            <div
+                class="dropdown-area"
+                id="monthSelector">
+
+                <select
+                    id="yearSelect"
+                    class="select-box"></select>
+
+                <select
+                    id="monthSelect"
+                    class="select-box"></select>
+
+            </div>
+
+        </div>
+
+        <button
+            class="btn-add"
+            onclick="openLeaveModal()">
+            + 휴가 추가
+        </button>
+
+    </div>
+
+    <div
+        class="calendar-grid"
+        id="calendarGrid">
+    </div>
+
+    <div class="footer-buttons">
+
+        <button
+            class="footer-btn"
+            onclick="openMemoModal()">
+            메모
+        </button>
+
+        <button
+            class="footer-btn primary"
+            onclick="goToday()">
+            오늘
+        </button>
+
+    </div>
+
+</div>
