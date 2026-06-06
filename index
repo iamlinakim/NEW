@@ -426,3 +426,943 @@ body{
     </div>
 
 </div>
+
+<script>
+
+/* =========================
+   2025~2035 공휴일 데이터
+========================= */
+
+const holidays = {
+
+"2025-01-01":"신정",
+"2025-03-01":"삼일절",
+"2025-03-03":"대체공휴일",
+"2025-05-05":"어린이날",
+"2025-05-06":"대체공휴일",
+"2025-06-06":"현충일",
+"2025-08-15":"광복절",
+"2025-10-03":"개천절",
+"2025-10-05":"추석연휴",
+"2025-10-06":"추석",
+"2025-10-07":"추석연휴",
+"2025-10-08":"대체공휴일",
+"2025-10-09":"한글날",
+"2025-12-25":"성탄절",
+
+"2026-01-01":"신정",
+"2026-02-16":"설날연휴",
+"2026-02-17":"설날",
+"2026-02-18":"설날연휴",
+"2026-03-01":"삼일절",
+"2026-03-02":"대체공휴일",
+"2026-05-05":"어린이날",
+"2026-05-24":"부처님오신날",
+"2026-05-25":"대체공휴일",
+"2026-06-06":"현충일",
+"2026-08-15":"광복절",
+"2026-08-17":"대체공휴일",
+"2026-09-24":"추석연휴",
+"2026-09-25":"추석",
+"2026-09-26":"추석연휴",
+"2026-10-03":"개천절",
+"2026-10-05":"대체공휴일",
+"2026-10-09":"한글날",
+"2026-12-25":"성탄절"
+
+};
+
+/* =========================
+   저장 데이터
+========================= */
+
+let leaveData =
+JSON.parse(
+localStorage.getItem("leaveData")
+) || [];
+
+let memoData =
+JSON.parse(
+localStorage.getItem("memoData")
+) || {};
+
+/* =========================
+   현재 달
+========================= */
+
+let currentDate = new Date();
+
+/* =========================
+   직원 목록
+========================= */
+
+const staffList = [
+"이우라",
+"변영선",
+"김지원",
+"박미옥",
+"이금아",
+"김남주",
+"김영서"
+];
+
+/* =========================
+   유틸
+========================= */
+
+function formatDate(date){
+
+const y=date.getFullYear();
+
+const m=
+String(date.getMonth()+1)
+.padStart(2,"0");
+
+const d=
+String(date.getDate())
+.padStart(2,"0");
+
+return `${y}-${m}-${d}`;
+
+}
+
+/* =========================
+   연도/월 셀렉트
+========================= */
+
+function buildSelectors(){
+
+const y=document.getElementById("yearSelect");
+const m=document.getElementById("monthSelect");
+
+for(let year=2025; year<=2035; year++){
+
+const option=
+document.createElement("option");
+
+option.value=year;
+option.textContent=`${year}년`;
+
+y.appendChild(option);
+
+}
+
+for(let month=1; month<=12; month++){
+
+const option=
+document.createElement("option");
+
+option.value=month-1;
+option.textContent=`${month}월`;
+
+m.appendChild(option);
+
+}
+
+y.onchange=jumpMonth;
+m.onchange=jumpMonth;
+
+}
+
+function toggleMonthSelector(){
+
+const area=
+document.getElementById(
+"monthSelector"
+);
+
+area.style.display=
+area.style.display==="flex"
+?"none"
+:"flex";
+
+}
+
+function jumpMonth(){
+
+const y=
+parseInt(
+document.getElementById("yearSelect").value
+);
+
+const m=
+parseInt(
+document.getElementById("monthSelect").value
+);
+
+currentDate=
+new Date(y,m,1);
+
+renderCalendar();
+
+}
+
+/* =========================
+   월 이동
+========================= */
+
+function moveMonth(v){
+
+currentDate.setMonth(
+currentDate.getMonth()+v
+);
+
+renderCalendar();
+
+}
+
+function goToday(){
+
+currentDate=new Date();
+
+renderCalendar();
+
+}
+
+/* =========================
+   달력 렌더링
+========================= */
+
+function renderCalendar(){
+
+const grid=
+document.getElementById(
+"calendarGrid"
+);
+
+grid.innerHTML="";
+
+const y=
+currentDate.getFullYear();
+
+const m=
+currentDate.getMonth();
+
+document.getElementById(
+"calendarTitle"
+).innerText=
+`${y}년 ${m+1}월`;
+
+document.getElementById(
+"yearSelect"
+).value=y;
+
+document.getElementById(
+"monthSelect"
+).value=m;
+
+/* 요일 */
+
+["일","월","화","수","목","금","토"]
+.forEach((day,index)=>{
+
+const div=
+document.createElement("div");
+
+div.className="day-header";
+
+if(index===0)
+div.classList.add("sun");
+
+if(index===6)
+div.classList.add("sat");
+
+div.innerText=day;
+
+grid.appendChild(div);
+
+});
+
+const firstDay=
+new Date(y,m,1).getDay();
+
+const lastDate=
+new Date(y,m+1,0).getDate();
+
+const prevLast=
+new Date(y,m,0).getDate();
+
+/* 이전달 */
+
+for(
+let i=firstDay-1;
+i>=0;
+i--
+){
+
+createDayCell(
+new Date(y,m-1,prevLast-i),
+true
+);
+
+}
+
+/* 현재달 */
+
+for(
+let day=1;
+day<=lastDate;
+day++
+){
+
+createDayCell(
+new Date(y,m,day),
+false
+);
+
+}
+
+/* 42칸 맞춤 */
+
+const currentCells=
+grid.children.length-7;
+
+const remain=
+42-currentCells;
+
+for(
+let i=1;
+i<=remain;
+i++
+){
+
+createDayCell(
+new Date(y,m+1,i),
+true
+);
+
+}
+
+}
+
+/* =========================
+   날짜 생성
+========================= */
+
+function createDayCell(
+date,
+otherMonth
+){
+
+const grid=
+document.getElementById(
+"calendarGrid"
+);
+
+const dateKey=
+formatDate(date);
+
+const cell=
+document.createElement("div");
+
+cell.className="day-cell";
+
+if(otherMonth)
+cell.classList.add("other");
+
+if(date.getDay()===0)
+cell.classList.add("sun");
+
+if(date.getDay()===6)
+cell.classList.add("sat");
+
+if(holidays[dateKey])
+cell.classList.add("holiday");
+
+const top=
+document.createElement("div");
+
+top.className="day-top";
+
+let html=
+`<span class="day-number">${date.getDate()}</span>`;
+
+if(holidays[dateKey]){
+
+html+=
+`<span class="holiday-name">
+${holidays[dateKey]}
+</span>`;
+
+}
+
+top.innerHTML=html;
+
+cell.appendChild(top);
+
+/* 메모 */
+
+if(memoData[dateKey]){
+
+const memo=
+document.createElement("div");
+
+memo.className="memo-badge";
+
+memo.innerText=
+memoData[dateKey];
+
+cell.appendChild(memo);
+
+}
+
+/* 휴가 표시 */
+
+const leaveList=
+document.createElement("div");
+
+leaveList.className=
+"leave-list";
+
+leaveData
+.filter(
+v =>
+dateKey>=v.start &&
+dateKey<=v.end
+)
+.forEach(v=>{
+
+const item=
+document.createElement("div");
+
+item.className=
+"leave-item";
+
+item.innerText=
+`${v.name} (${v.type})`;
+
+item.onclick=
+()=>openLeaveModal(v);
+
+leaveList.appendChild(item);
+
+});
+
+cell.appendChild(leaveList);
+
+grid.appendChild(cell);
+
+}
+
+buildSelectors();
+
+</script>
+
+<!-- 휴가 등록/수정 모달 -->
+
+<div class="modal" id="leaveModal">
+
+    <div class="modal-box">
+
+        <div class="modal-title">
+            휴가 입력
+        </div>
+
+        <input type="hidden" id="editId">
+
+        <div class="form-group">
+            <label>성명</label>
+            <select
+                id="leaveName"
+                class="form-control">
+
+                <option>이우라</option>
+                <option>변영선</option>
+                <option>김지원</option>
+                <option>박미옥</option>
+                <option>이금아</option>
+                <option>김남주</option>
+                <option>김영서</option>
+
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>휴가 종류</label>
+
+            <select
+                id="leaveType"
+                class="form-control">
+
+                <option>반차</option>
+                <option>연차</option>
+                <option>금요반차</option>
+                <option>휴일반차</option>
+                <option>청원휴가</option>
+
+            </select>
+        </div>
+
+        <div class="date-row">
+
+            <div class="form-group">
+
+                <label>시작일</label>
+
+                <input
+                    type="date"
+                    id="leaveStart"
+                    class="form-control">
+
+            </div>
+
+            <div class="form-group">
+
+                <label>종료일</label>
+
+                <input
+                    type="date"
+                    id="leaveEnd"
+                    class="form-control">
+
+            </div>
+
+        </div>
+
+        <div class="form-group">
+
+            <label>메모</label>
+
+            <input
+                type="text"
+                id="leaveMemo"
+                class="form-control"
+                placeholder="회식, 경조사 등">
+
+        </div>
+
+        <div class="modal-footer">
+
+            <button
+                class="btn btn-delete"
+                id="deleteBtn"
+                onclick="deleteLeave()">
+
+                삭제
+
+            </button>
+
+            <button
+                class="btn btn-cancel"
+                onclick="closeLeaveModal()">
+
+                취소
+
+            </button>
+
+            <button
+                class="btn btn-save"
+                onclick="saveLeave()">
+
+                저장
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- 메모 모달 -->
+
+<div class="modal" id="memoModal">
+
+    <div class="modal-box">
+
+        <div class="modal-title">
+            일정 / 메모 등록
+        </div>
+
+        <div class="form-group">
+
+            <label>날짜</label>
+
+            <input
+                type="date"
+                id="memoDate"
+                class="form-control">
+
+        </div>
+
+        <div class="form-group">
+
+            <label>내용</label>
+
+            <input
+                type="text"
+                id="memoText"
+                class="form-control">
+
+        </div>
+
+        <div class="modal-footer">
+
+            <button
+                class="btn btn-cancel"
+                onclick="closeMemoModal()">
+
+                취소
+
+            </button>
+
+            <button
+                class="btn btn-save"
+                onclick="saveMemo()">
+
+                저장
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+/* ====================
+   휴가 모달
+==================== */
+
+function openLeaveModal(data=null){
+
+document
+.getElementById("leaveModal")
+.classList.add("show");
+
+if(data){
+
+document.getElementById("editId")
+.value=data.id;
+
+document.getElementById("leaveName")
+.value=data.name;
+
+document.getElementById("leaveType")
+.value=data.type;
+
+document.getElementById("leaveStart")
+.value=data.start;
+
+document.getElementById("leaveEnd")
+.value=data.end;
+
+document.getElementById("leaveMemo")
+.value=data.memo || "";
+
+document.getElementById("deleteBtn")
+.style.display="block";
+
+}else{
+
+document.getElementById("editId")
+.value="";
+
+document.getElementById("leaveName")
+.selectedIndex=0;
+
+document.getElementById("leaveType")
+.selectedIndex=0;
+
+document.getElementById("leaveMemo")
+.value="";
+
+document.getElementById("deleteBtn")
+.style.display="none";
+
+}
+
+}
+
+function closeLeaveModal(){
+
+document
+.getElementById("leaveModal")
+.classList.remove("show");
+
+}
+
+/* ====================
+   휴가 저장
+==================== */
+
+function saveLeave(){
+
+const id=
+document.getElementById("editId").value;
+
+const name=
+document.getElementById("leaveName").value;
+
+const type=
+document.getElementById("leaveType").value;
+
+const start=
+document.getElementById("leaveStart").value;
+
+const end=
+document.getElementById("leaveEnd").value;
+
+const memo=
+document.getElementById("leaveMemo").value;
+
+if(!start || !end){
+
+alert("날짜를 입력하세요.");
+return;
+
+}
+
+if(start>end){
+
+alert("종료일이 시작일보다 빠릅니다.");
+return;
+
+}
+
+let d=new Date(start);
+
+while(d<=new Date(end)){
+
+const key=formatDate(d);
+
+if(d.getDay()===6){
+
+alert(
+"토요일은 휴가 입력이 불가능합니다."
+);
+
+return;
+
+}
+
+const dayEntries=
+leaveData.filter(v=>{
+
+if(id && String(v.id)===String(id))
+return false;
+
+return (
+key>=v.start &&
+key<=v.end
+);
+
+});
+
+if(
+dayEntries.some(
+v=>v.name===name
+)
+){
+
+alert(
+`${key}
+이미 ${name}님의 휴가가 있습니다.`
+);
+
+return;
+
+}
+
+if(dayEntries.length>=4){
+
+alert(
+`${key}
+최대 4명까지 가능합니다.`
+);
+
+return;
+
+}
+
+d.setDate(
+d.getDate()+1
+);
+
+}
+
+/* 수정 */
+
+if(id){
+
+const idx=
+leaveData.findIndex(
+v=>String(v.id)===String(id)
+);
+
+leaveData[idx]={
+id:Number(id),
+name,
+type,
+start,
+end,
+memo
+};
+
+}else{
+
+leaveData.push({
+
+id:Date.now(),
+
+name,
+type,
+start,
+end,
+memo
+
+});
+
+}
+
+/* 메모 자동 연동 */
+
+if(memo.trim()){
+
+let mDate=
+new Date(start);
+
+while(
+mDate<=new Date(end)
+){
+
+memoData[
+formatDate(mDate)
+]=memo;
+
+mDate.setDate(
+mDate.getDate()+1
+);
+
+}
+
+}
+
+saveStorage();
+
+closeLeaveModal();
+
+renderCalendar();
+
+}
+
+/* ====================
+   휴가 삭제
+==================== */
+
+function deleteLeave(){
+
+const id=
+document.getElementById("editId")
+.value;
+
+if(!id) return;
+
+if(
+!confirm(
+"삭제하시겠습니까?"
+)
+) return;
+
+leaveData=
+leaveData.filter(
+v=>String(v.id)!==String(id)
+);
+
+saveStorage();
+
+closeLeaveModal();
+
+renderCalendar();
+
+}
+
+/* ====================
+   메모 모달
+==================== */
+
+function openMemoModal(){
+
+document
+.getElementById("memoModal")
+.classList.add("show");
+
+}
+
+function closeMemoModal(){
+
+document
+.getElementById("memoModal")
+.classList.remove("show");
+
+}
+
+function saveMemo(){
+
+const date=
+document.getElementById("memoDate")
+.value;
+
+const text=
+document.getElementById("memoText")
+.value;
+
+if(!date || !text){
+
+alert("입력하세요.");
+return;
+
+}
+
+if(
+new Date(date).getDay()===6
+){
+
+alert(
+"토요일은 입력 불가"
+);
+
+return;
+
+}
+
+memoData[date]=text;
+
+saveStorage();
+
+closeMemoModal();
+
+renderCalendar();
+
+}
+
+/* ====================
+   저장
+==================== */
+
+function saveStorage(){
+
+localStorage.setItem(
+"leaveData",
+JSON.stringify(leaveData)
+);
+
+localStorage.setItem(
+"memoData",
+JSON.stringify(memoData)
+);
+
+}
+
+/* ====================
+   초기 실행
+==================== */
+
+renderCalendar();
+
+</script>
+
+</body>
+</html>
